@@ -1,0 +1,11 @@
+[project]
+name = "docflow-rescue"
+version = "1.0.0"
+description = "A local AI document-processing efficiency challenge"
+requires-python = ">=3.14,<3.15"
+license = "MIT"
+dependencies = ["fastapi==0.121.3", "uvicorn==0.54.0", "pypdf==6.21.4"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_docflow_*.py"]

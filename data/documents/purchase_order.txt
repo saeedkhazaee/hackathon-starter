@@ -1,0 +1,13 @@
+Purchase Order
+Order Number: PO-1
+Supplier: Cedar Systems
+Customer: Maple Works
+Date: 2026-10-15
+Subtotal Cents: 4876
+Tax Cents: 244
+Total Cents: 5120
+Items:
+description,quantity,unit_cents
+Service 1,5,524
+Service 2,3,474
+Service 3,3,278

@@ -1,0 +1,83 @@
+# NetGreener AI Efficiency Challenge
+
+**Rescue the Runaway AI Pipeline** · **Build Smarter. Waste Less.**
+
+Blockchain & AI Summit · Montreal · November 20, 2026 · **60 minutes**
+
+DocFlow Rescue processes synthetic invoices, purchase orders, receipts and contracts.
+It classifies documents with a trained local multinomial Naive Bayes model, extracts
+structured fields, checks amounts and dates, and records jobs, attempts and results.
+It works locally without a paid AI service. Structured extraction uses rules, not an LLM.
+
+Your company’s document pipeline works, but some workloads consume unexpectedly large
+amounts of resources. Investigate with NetGreener, identify the causes, improve the
+implementation using your preferred AI coding assistant, and prove the same required
+work still completes correctly.
+
+**Connect → Observe → Investigate → Optimize → Verify**
+
+## First mission
+
+Your first task is to integrate NetGreener into this application. Visit the
+[official NetGreener website](https://www.netgreener.com), explore its developer
+packages and documentation, and use your preferred AI coding assistant to connect
+NetGreener to this project. The starter has no installed or configured integration.
+Prepare your own account/project access before the timed event; never share personal
+login credentials or tokens. For team access, use organizer-provisioned permissions.
+
+## Start
+
+Use the official template to create **one public repository** for yourself or your
+team, clone it, then follow [QUICKSTART.md](QUICKSTART.md).
+
+```powershell
+py -3.14 scripts/bootstrap.py
+.\.venv\Scripts\python.exe -m docflow
+.\.venv\Scripts\python.exe -m pytest -q
+.\.venv\Scripts\python.exe -m uvicorn docflow.api:app --host 127.0.0.1 --port 8000 --workers 1 --timeout-graceful-shutdown 15
+```
+
+Open [API documentation](http://127.0.0.1:8000/docs). The CLI and API use the same
+pipeline. The small demo processes 40 documents, with 37 successful results and
+three documented arithmetic failures. A failed document is a legitimate result;
+reporting it as successfully processed would be incorrect.
+
+```powershell
+.\.venv\Scripts\python.exe benchmark.py run --label local --output .runtime/local.json
+```
+
+After integrating monitoring, collect an instrumented baseline and repeat the same
+workload after optimizing. Use the same measurement label, runtime, host, packages,
+concurrency and cache policy. The benchmark records three fresh-process trials and
+independent CPU/wall time; judges verify actual NetGreener evidence separately.
+Never compare an uninstrumented baseline with an instrumented optimized run.
+
+## Documents and scope
+
+UTF-8 business exchange documents and digital PDFs work out of the box. Small text
+and two-page PDF examples are in `data/documents`. Optional PNG OCR uses a separately
+installed Tesseract executable; a synthetic scanned contract is included. The timed
+core workload does not require OCR installation. If your declared environment supports
+OCR, preserve it. Arbitrary layouts, handwriting and image-only PDFs are outside scope.
+See [document contract](docs/DOCUMENT_FORMAT.md) for exact fields and limits.
+
+## Participation and judging
+
+Individuals and teams use the same starter, tools, 60-minute limit, correctness gate
+and leaderboard. Suggested team size is 2–4; it is not enforced. Roles are optional:
+integration/telemetry, pipeline investigation, job processing, and verification.
+
+| Criterion | Weight |
+|---|---:|
+| Resource efficiency improvement | 40% |
+| Application correctness | 25% |
+| Effective use of NetGreener | 20% |
+| Results and explanation | 15% |
+
+Essential correctness is mandatory: failing it earns zero efficiency points. Team
+size earns no points. See [RULES.md](RULES.md), [CHALLENGE.md](CHALLENGE.md), and
+[SUBMISSION.md](SUBMISSION.md). Submit one repository and one final evidence set.
+
+Source is MIT licensed. Third-party licenses and optional OCR requirements are in
+[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). Windows is the tested platform;
+macOS/Linux execution and the hosted template workflow remain unverified.

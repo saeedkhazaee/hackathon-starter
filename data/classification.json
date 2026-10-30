@@ -1,0 +1,18 @@
+[
+  {"category":"invoice","text":"Invoice invoice number supplier customer date subtotal tax total payment due accounts payable"},
+  {"category":"invoice","text":"Invoice invoice number goods supplier billing customer date amount payment invoice"},
+  {"category":"invoice","text":"Tax invoice invoice number services supplier customer subtotal total remittance"},
+  {"category":"invoice","text":"Commercial invoice invoice number customer supplier due payment billing"},
+  {"category":"purchase_order","text":"Purchase order order number supplier customer date quantities procurement ordered total"},
+  {"category":"purchase_order","text":"Purchase order order number purchasing customer supplier authorized requisition delivery"},
+  {"category":"purchase_order","text":"Purchase order order number buyer customer supplier date subtotal tax total"},
+  {"category":"purchase_order","text":"Purchase order order number procurement ordered supplier customer items"},
+  {"category":"receipt","text":"Receipt receipt merchant date subtotal tax total paid sale transaction"},
+  {"category":"receipt","text":"Receipt merchant purchase paid date tax total retail sale"},
+  {"category":"receipt","text":"Sales receipt merchant date subtotal total transaction completed payment"},
+  {"category":"receipt","text":"Receipt merchant date paid items sale tax total"},
+  {"category":"contract","text":"Contract contract id party a party b effective date expiration date contract type agreement"},
+  {"category":"contract","text":"Contract agreement contract id party a party b effective date expiration date contract type"},
+  {"category":"contract","text":"Services contract party a party b effective date expiration date contract id contract type"},
+  {"category":"contract","text":"Contract term agreement party a party b contract id effective date expiration date contract type"}
+]

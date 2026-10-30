@@ -1,0 +1,7 @@
+Services Contract
+Contract ID: CT-1
+Party A: Cedar Systems
+Party B: Maple Works
+Effective Date: 2026-01-01
+Expiration Date: 2026-12-31
+Contract Type: Maintenance

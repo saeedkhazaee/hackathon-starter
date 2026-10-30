@@ -1,0 +1,15 @@
+.venv*/
+.runtime/
+__pycache__/
+.pytest_cache/
+.env
+.env.*
+.netgreener/
+
+# Organizer records belong in the external private archive.
+/docs/PUBLISHING.md
+/docs/FINAL_VERIFICATION.md
+/ORGANIZER_GUIDE.md
+/VALIDATION_GATE.md
+/PUBLIC_FILES.json
+/public-export-manifest.json
