@@ -16,6 +16,9 @@ work still completes correctly.
 
 **Connect → Observe → Investigate → Optimize → Verify**
 
+Read [the problem statement](PROBLEM.md) for the scenario, required behavior and
+evidence you need to demonstrate an improvement.
+
 ## First mission
 
 Your first task is to integrate NetGreener into this application. Visit the
