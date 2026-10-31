@@ -4,8 +4,9 @@
 
 You have **60 minutes**, working individually or as a team, to reduce the resources
 used by an existing application while preserving its required behavior. Use
-NetGreener to measure the application and your preferred AI coding assistant to
-help investigate and improve it.
+NetGreener to investigate the application's resource use and your preferred AI coding
+assistant to help investigate and improve it. Your responsibility is to direct the
+agent, assess its suggestions and verify what changes actually achieve.
 
 ## The business scenario
 
@@ -49,8 +50,10 @@ prerequisites. Supported formats and behavior are defined in the
    NetGreener dashboard evidence alongside the application's job status, attempts,
    stages, errors and results. The API exposes these through its
    [local interactive documentation](http://127.0.0.1:8000/docs).
-3. **Investigate.** Connect the measured resource use to actual application behavior.
-   Explain which work is necessary and which work fails to contribute useful progress.
+3. **Investigate.** Use a specific NetGreener observation to form a hypothesis, then
+   connect it to actual application behavior. Direct your coding agent to examine the
+   relevant path. Explain which work is necessary and which work fails to contribute
+   useful progress; do not treat the agent's explanation as proof.
 4. **Optimize.** Change the permitted application implementation to address the causes
    you identified. Preserve all required processing and safety behavior.
 5. **Verify.** Run correctness checks and repeat the same instrumented workload under
@@ -61,6 +64,23 @@ Use the dashboard and application evidence together. An editor screenshot does n
 prove a resource improvement, and a lower resource number does not prove correctness.
 Automatic stuck-job detection and automatic fixes are not promised features of this
 challenge.
+
+## Working with a coding agent
+
+Your agent may generate all implementation code. Judges evaluate the team's
+understanding, decisions and verified outcomes; manual coding, longer prompts, larger
+diffs and expensive models receive no extra credit.
+
+Capture three consequential decisions during the challenge. For each, record the
+observation, your question to the agent, the suggestion you accepted, revised or
+rejected, your reason, and the evidence used to check it. Link to a run, application
+trace, test result or code diff. Full chat histories are not required. Report decisions
+honestly; you do not need to invent a disagreement with your agent.
+
+Be ready to explain the evidence and one way your improvement could fail. The current
+application has local machine learning and rule-based extraction; it does not contain
+an LLM agent or MCP tool workflow. Application attempts are not automatically
+NetGreener tool-call telemetry.
 
 ## What a successful solution preserves
 
@@ -82,14 +102,23 @@ trials for each version. Keep the workload, host, runtime, packages, monitoring,
 concurrency and cache conditions comparable. If a measurement condition changes,
 collect a new matching baseline.
 
-Efficiency scoring uses NetGreener-attributed CPU for `POST /jobs`, with matching
-measurement scope and provenance. Local CPU and wall time provide supporting evidence.
-This exercise does not establish physical energy, carbon, water or AI-token savings.
-Essential correctness must pass before any efficiency points are awarded.
+The rubric is Innovation (25%), Efficiency (40%), Impact (20%) and Presentation (15%).
+Efficiency awards 30 points for verified CPU reduction and 10 for evidence that
+unnecessary work was eliminated while required outcomes were preserved.
+
+CPU scoring uses NetGreener-attributed CPU for `POST /jobs`, with matching measurement
+scope and provenance. You must prove that the measured scope includes the actual
+processing worker. Moving work to an unmeasured process is not an optimization. Local
+CPU and wall time provide supporting evidence. This exercise does not establish
+physical energy, carbon, water or AI-token savings. Correctness, trustworthy
+measurements and worker coverage must pass before Efficiency points or winner
+eligibility are awarded. See [RULES.md](RULES.md) for the exact gates.
 
 Submit your repository and final commit, reproduction steps, test results, real
-NetGreener run evidence, and an explanation connecting your observations to your
-changes. The goal is **less resource use for the same required work**.
+NetGreener run evidence, three decision records, and an explanation connecting your
+observations to your changes. After the coding deadline, demonstrate your work in
+three minutes and answer two minutes of jury questions. The goal is **less resource
+use for the same required work**.
 
 See [QUICKSTART.md](QUICKSTART.md) for setup, [CHALLENGE.md](CHALLENGE.md) for the
 suggested schedule, [RULES.md](RULES.md) for protected files and scoring, and

@@ -72,13 +72,32 @@ integration/telemetry, pipeline investigation, job processing, and verification.
 
 | Criterion | Weight |
 |---|---:|
-| Resource efficiency improvement | 40% |
-| Application correctness | 25% |
-| Effective use of NetGreener | 20% |
-| Results and explanation | 15% |
+| Innovation | 25% |
+| Efficiency | 40% |
+| Impact | 20% |
+| Presentation | 15% |
 
-Essential correctness is mandatory: failing it earns zero efficiency points. Team
-size earns no points. See [RULES.md](RULES.md), [CHALLENGE.md](CHALLENGE.md), and
+Coding agents may write all of your code. You are responsible for directing the
+investigation, checking suggestions and proving the result. Judges evaluate your
+decisions and evidence, not manual typing, code volume, prompt length or model price.
+Record three consequential decisions as you work.
+
+Correctness, trustworthy measurements and coverage of the actual processing worker
+are mandatory gates. Failing a gate earns zero Efficiency points and makes an entry
+ineligible to win. Efficiency comprises 30 points for verified CPU reduction and
+10 for demonstrated elimination of unnecessary work. Team size earns no points.
+
+The jury comprises one representative each from **HUMAN IP**, **iA7** and
+**NetGreener**. There is **one overall winning team**; solo entrants count as
+one-person teams for judging. Presentations take place after the coding deadline:
+three minutes for the demonstration and two minutes for questions.
+
+**Prizes:** one year of NetGreener access for the winning team; two months of access
+for every participant. The included plan, usage allowance, activation date and
+whether the winning-team prize covers each member or a shared subscription will be
+announced before the event.
+
+See [RULES.md](RULES.md), [CHALLENGE.md](CHALLENGE.md), and
 [SUBMISSION.md](SUBMISSION.md). Submit one repository and one final evidence set.
 
 Source is MIT licensed. Third-party licenses and optional OCR requirements are in
