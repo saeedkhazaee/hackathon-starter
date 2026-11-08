@@ -14,6 +14,10 @@ Include:
   attribution provenance. Both runs must use the same instrumentation and workload.
 - A concise explanation connecting observed behavior to your hypothesis, changes and
   verification. Identify manual inferences separately from actual product alerts.
+- Azure request and token evidence, reconciled with provider response usage, plus
+  any cost estimate and its pricing source. Identify missing usage, errors and cached
+  token treatment. Include endpoint/deployment, reasoning and output-limit settings
+  without credentials.
 - Failures, limitations, and any upload outage details.
 - Three consequential decision records using the template below, plus the AI tools
   and models used where known. Full chat histories are not required.

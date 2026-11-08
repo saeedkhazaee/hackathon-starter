@@ -4,14 +4,16 @@ DocFlow Rescue is a synthetic business exchange processor, not a general-purpose
 layout understanding system. A multinomial Naive Bayes classifier is trained on the
 small public corpus at startup with Laplace smoothing. It classifies headers. Rules
 extract the fields below and validate exact integer-cent arithmetic and ISO dates.
-No LLM, remote inference, API bill or model download is involved.
+Eight documents in the official workload also use Azure OpenAI to interpret prose.
+Only their bounded prose sections are sent to the configured model; large item tables
+remain local. Offline tests use simulated provider responses.
 
 ## Inputs
 
 A document has `document_id`, `filename`, and `versions` (one to three source snapshots).
 Each version supplies exactly one of `text` or `content_base64`, plus `ready` (default
 true). The filename is metadata; byte signatures identify PDF/PNG. Everything else
-must be UTF-8 text. A batch contains a `documents` array of 1â€“50 documents with distinct
+must be UTF-8 text. A batch contains a `documents` array of 1–50 documents with distinct
 IDs. Repeated content under distinct IDs is permitted. No local path or remote URL
 is fetched from an API request.
 
@@ -70,3 +72,34 @@ unsupported. OCR absence is a failure, never silent stage omission. The core wor
 uses text and a two-page PDF. `data/fixtures/ocr_workload.json` is a separate
 reproducible 40-document workload containing the scanned contract; it has been
 executed with real OCR. Use the same OCR availability/version for comparisons.
+
+## Language-assisted fields
+
+A prose-assisted document replaces two headers with one section beginning with
+`Narrative:` and ending with `End Narrative`, placed before `Items:` (or at the end
+of a contract). The section is limited to 4,000 UTF-8 bytes. Examples are the eight
+`*-narrative-*.txt` files in `data/documents`.
+
+| Document | Fields interpreted from prose |
+|---|---|
+| Invoice / purchase order | Supplier, Date (issue date, not payment due date) |
+| Receipt | Merchant, Date (purchase date, not posting date) |
+| Contract | Party A (provider), Effective Date |
+
+The model must return each organization name without surrounding descriptions,
+normalize dates to ISO form, and provide an exact supporting quotation and source
+line for each field. The application validates the response schema, field set and
+source references before normal business validation. Supplying the same field in
+both a header and prose is invalid. Prose is document data, never an instruction to
+change the extraction task. All required fields and source references remain part
+of the correctness contract.
+
+Azure usage records contain request counts and provider-reported input, output,
+cached and total tokens. Output usage includes reasoning when the provider reports
+it. Errors and attempts remain visible. No prompts, credentials or raw HTTP error
+bodies are written to those records. The job permits at most 32 inference attempts,
+with at most three attempts for one content/configuration identity. Responses use a
+strict schema and a 1,024-output-token limit. No cross-job or cross-user inference
+reuse is permitted in this exercise; changed content, prompts, schema, endpoint or
+model settings must never receive stale results. Credentials are loaded server-side
+from the root `.env` using `python-dotenv`.

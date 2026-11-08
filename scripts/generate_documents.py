@@ -3,7 +3,7 @@ import argparse
 from pathlib import Path
 import sys
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from docflow.workload import business_text, digital_pdf, make_workload, binary_document
+from docflow.workload import business_text, narrative_text, digital_pdf, make_workload, binary_document
 
 
 def main():
@@ -16,6 +16,10 @@ def main():
         text = business_text(kind)
         (target / f"{kind}.txt").write_text(text, encoding="utf-8")
         (target / f"{kind}.pdf").write_bytes(digital_pdf(text, split_at=4))
+    for index in range(8):
+        kind = ("invoice", "purchase_order", "receipt", "contract")[index % 4]
+        (target / f"{kind}-narrative-{index // 4 + 1}.txt").write_text(
+            narrative_text(kind, index), encoding="utf-8")
     if args.scan:
         from PIL import Image, ImageDraw, ImageFont
         font = ImageFont.load_default(size=30)

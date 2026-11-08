@@ -60,13 +60,37 @@ def digital_pdf(text, split_at=None):
     return output.getvalue()
 
 
-def make_workload(seed=17, rows=25_000):
+def narrative_text(kind="invoice", number=1, seed=17):
+    """Mixed prose and structured data from a supplier's document export."""
+    text = business_text(kind, number, seed=seed)
+    if kind == "contract":
+        remove = ("Party A:", "Effective Date:")
+        prose = ["Maple Works is the customer. The provider signing as the first party is Cedar Systems.",
+                 "Although discussions began in December, the agreement takes effect on January 1, 2026."]
+    elif kind == "receipt":
+        remove = ("Merchant:", "Date:")
+        prose = ["The card processor is Pine Payments; the store that sold these items is Cedar Store.",
+                 "This receipt records the purchase made on October 15, 2026, not the October 18 posting date."]
+    else:
+        remove = ("Supplier:", "Date:")
+        prose = ["Maple Works is the purchaser. The listed services are supplied by Cedar Systems.",
+                 "The document was issued on October 15, 2026; payment is due on November 14, 2026."]
+    if number >= 4:
+        prose.reverse()
+    lines = [line for line in text.splitlines() if not line.startswith(remove)]
+    position = lines.index("Items:") if "Items:" in lines else len(lines)
+    lines[position:position] = ["Narrative:", *prose, "End Narrative"]
+    return "\n".join(lines) + "\n"
+
+
+def make_workload(seed=17, rows=25_000, *, language_assisted=False):
     if not 1 <= rows <= 25_000:
         raise ValueError("rows must be between 1 and 25,000")
     docs = []
     kinds = ["invoice", "purchase_order", "receipt", "contract"]
     for index in range(28):
-        docs.append(text_document(f"DOC-{index:03}", business_text(kinds[index % 4], index, seed=seed + index)))
+        generator = narrative_text if language_assisted and index < 8 else business_text
+        docs.append(text_document(f"DOC-{index:03}", generator(kinds[index % 4], index, seed=seed + index)))
     for index in range(8):
         docs.append(text_document(f"DOC-{28 + index:03}", business_text("invoice", 28 + index,
             rows=rows, seed=seed + index, discrepancy=1 if index in (2, 5, 7) else 0)))

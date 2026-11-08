@@ -3,6 +3,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, BackgroundTasks, HTTPException
 from .jobs import JobStore, Busy
 from .models import Batch, Document
+from typing import Literal
 
 store = JobStore()
 
@@ -65,7 +66,14 @@ def lookup(job_id, results=False):
 @app.get("/health")
 def health():
     import shutil
-    return {"status": "ok", "application": "DocFlow Rescue", "paid_api_required": False,
+    from .config import ConfigurationError, load_azure_settings
+    try:
+        load_azure_settings()
+        configured = True
+    except ConfigurationError:
+        configured = False
+    return {"status": "ok", "application": "DocFlow Rescue", "paid_api_required": True,
+            "azure_configured": configured,
             "ocr_available": bool(shutil.which("tesseract")), "processing_lanes": 1}
 
 
@@ -75,6 +83,13 @@ def single(document: Document):
     job_id = submit(batch)
     store.run(job_id, batch)
     return lookup(job_id, True)
+
+
+@app.get("/samples/{size}")
+def sample_batch(size: Literal["demo", "full"]):
+    """Synthetic inboxes for the browser; the full benchmark controls stay unchanged."""
+    from .workload import make_workload
+    return make_workload(rows=10 if size == "demo" else 25_000, language_assisted=True)
 
 
 @app.post("/jobs", status_code=202)

@@ -7,7 +7,8 @@ Blockchain & AI Summit · Montreal · November 20, 2026 · **60 minutes**
 DocFlow Rescue processes synthetic invoices, purchase orders, receipts and contracts.
 It classifies documents with a trained local multinomial Naive Bayes model, extracts
 structured fields, checks amounts and dates, and records jobs, attempts and results.
-It works locally without a paid AI service. Structured extraction uses rules, not an LLM.
+Eight documents also require Azure OpenAI to interpret prose. The rest use local
+processing. The organizer privately supplies temporary access to `gpt-5-mini`.
 
 Your company’s document pipeline works, but some workloads consume unexpectedly large
 amounts of resources. Investigate with NetGreener, identify the causes, improve the
@@ -35,6 +36,8 @@ team, clone it, then follow [QUICKSTART.md](QUICKSTART.md).
 
 ```powershell
 py -3.14 scripts/bootstrap.py
+# Put the organizer-supplied .env at the repository root.
+.\.venv\Scripts\python.exe -m docflow --check-azure-config
 .\.venv\Scripts\python.exe -m docflow
 .\.venv\Scripts\python.exe -m pytest -q
 .\.venv\Scripts\python.exe -m uvicorn docflow.api:app --host 127.0.0.1 --port 8000 --workers 1 --timeout-graceful-shutdown 15
@@ -42,8 +45,22 @@ py -3.14 scripts/bootstrap.py
 
 Open [API documentation](http://127.0.0.1:8000/docs). The CLI and API use the same
 pipeline. The small demo processes 40 documents, with 37 successful results and
-three documented arithmetic failures. A failed document is a legitimate result;
+three documented arithmetic failures. Demo and benchmark runs make paid Azure requests
+using the supplied temporary resource. Offline tests make no paid calls. A failed document is a legitimate result;
 reporting it as successfully processed would be incorrect.
+
+For the React document workspace, keep the backend running and open another terminal:
+
+```powershell
+cd frontend
+npm ci
+npm run dev
+```
+
+Open **http://127.0.0.1:5173** to upload documents, run samples, follow processing
+attempts, inspect extracted fields and source references, and download results.
+Node.js 22.12 or later is required. See [QUICKSTART.md](QUICKSTART.md)
+for setup and the distinction between interactive runs and scored benchmarks.
 
 ```powershell
 .\.venv\Scripts\python.exe benchmark.py run --label local --output .runtime/local.json
@@ -84,8 +101,9 @@ Record three consequential decisions as you work.
 
 Correctness, trustworthy measurements and coverage of the actual processing worker
 are mandatory gates. Failing a gate earns zero Efficiency points and makes an entry
-ineligible to win. Efficiency comprises 30 points for verified CPU reduction and
-10 for demonstrated elimination of unnecessary work. Team size earns no points.
+ineligible to win. Efficiency considers verified local CPU improvement, external
+inference efficiency and elimination of unnecessary work. The organizer announces
+the fixed numerical allocation before the timer starts. Team size earns no points.
 
 The jury comprises one representative each from **HUMAN IP**, **iA7** and
 **NetGreener**. There is **one overall winning team**; solo entrants count as

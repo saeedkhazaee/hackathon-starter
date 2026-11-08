@@ -4,7 +4,10 @@ __pycache__/
 .pytest_cache/
 .env
 .env.*
+!.env.example
 .netgreener/
+node_modules/
+/frontend/dist/
 
 # Organizer records belong in the external private archive.
 /docs/PUBLISHING.md

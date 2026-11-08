@@ -1,0 +1,9 @@
+Services Contract
+Contract ID: CT-3
+Party B: Maple Works
+Expiration Date: 2026-12-31
+Contract Type: Maintenance
+Narrative:
+Maple Works is the customer. The provider signing as the first party is Cedar Systems.
+Although discussions began in December, the agreement takes effect on January 1, 2026.
+End Narrative

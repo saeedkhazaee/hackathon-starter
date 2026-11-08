@@ -3,10 +3,17 @@
 Prepare CPython **3.14.10**, Git and your editor before the event. This exact runtime
 and the checked-in dependency lock were tested on Windows. Check `py -3.14 --version`.
 The bootstrap refuses a different patch version to avoid silent benchmark differences.
-No large AI model download, Redis, Docker, paid API or GPU is required.
+If the Python launcher cannot find your installed runtime, invoke the Python 3.14.10
+executable directly with `scripts/bootstrap.py`.
+No large model download, Redis, Docker or GPU is required. Azure inference uses
+the dedicated temporary resource; obtain the organizer-supplied `.env` before running
+the demo or benchmark. Dependencies, Node, account access and Azure configuration
+should be ready before the timed competition.
 
 ```powershell
 py -3.14 scripts/bootstrap.py
+# Save the privately supplied configuration as .env in this folder.
+.\.venv\Scripts\python.exe -m docflow --check-azure-config
 .\.venv\Scripts\python.exe -m docflow
 .\.venv\Scripts\python.exe -m pytest -q
 ```
@@ -15,6 +22,75 @@ Bootstrap creates a fresh `.venv`, installs the hash-locked application/test pac
 and checks dependencies. Use a fresh clone/environment for the challenge. Do not reuse
 a development environment containing unrelated packages. On other platforms the Python
 path is `.venv/bin/python`; those platforms have not been tested for this event.
+
+## React document workspace
+
+Install Node.js 22.12 or later before the event (tested with Node.js 22.12.0 and
+npm 10.9.0). Keep two terminals open at the repository root.
+
+Terminal 1 starts the backend:
+
+```powershell
+.\.venv\Scripts\python.exe -m uvicorn docflow.api:app --host 127.0.0.1 --port 8000 --workers 1 --timeout-graceful-shutdown 15
+```
+
+Terminal 2 starts React:
+
+```powershell
+cd frontend
+npm ci
+npm run dev
+```
+
+Open **http://127.0.0.1:5173**. Choose files or drag in TXT, digital PDF, or PNG
+documents. A single inbox JSON export is also supported. Use **Get an example**
+for a supported prose-assisted invoice (processing it makes Azure calls). The backend still enforces the document format and limits.
+
+**Run quick demo** uses 40 small documents. **Full workload** uses the original
+40-document benchmark inputs, including larger tables. Both expect 37 successes
+and 3 validation failures. Select a document to inspect its attempts, extracted
+fields, source lines and errors. Azure counters show actual request attempts and
+provider-reported tokens as responses arrive. They are application evidence, not a
+monitoring-product integration or an Azure invoice. Cancel an active job or download its final results.
+Refreshing the page restores the last job while it remains in server memory.
+
+Interactive runs help explore behavior; use the benchmark commands below for scored,
+comparable trials. Browser polling, sample generation and other traffic can change
+measurement conditions. Stop browser activity during controlled benchmark trials.
+
+Vite forwards `/api` requests to the local backend; no CORS configuration or browser
+API key is needed. Keep Azure credentials only in the root `.env`, never in frontend
+source or a `VITE_` variable. There is no monitoring integration in this frontend.
+To check the production bundle, run `npm run build` in `frontend`; `npm run preview`
+serves that bundle on the same frontend port and still needs the backend running.
+Stop the development server before previewing on that port. Press Ctrl+C in each
+terminal to stop its server.
+
+## Temporary Azure configuration
+
+Place the organizer-supplied shared configuration in `.env` at the repository root.
+For your own setup, copy `.env.example` to `.env` and fill in the supplied endpoint,
+deployment name and key. The loader uses `python-dotenv`, preserves the endpoint
+hostname, and does not expand variables inside credential values. Existing
+`AZURE_OPENAI_BASE_URL` and `AZURE_OPENAI_MODEL` settings are also accepted.
+Keep `.env` private; it is ignored by Git. Do not paste it into submissions or logs.
+
+Check configuration without sending a request:
+
+```powershell
+.\.venv\Scripts\python.exe -m docflow --check-azure-config
+```
+
+The application uses the OpenAI Responses client against the supplied Azure v1
+endpoint and deployment. Structured documents run locally; documents containing a
+`Narrative:` section make real, paid inference requests. Both browser samples and
+the default CLI workload include eight such documents. Requests have a 20-second
+timeout, no hidden SDK retries, a 1,024-output-token cap and bounded application
+retries. The deployment uses minimal reasoning. Do not change these measurement
+conditions between baseline and optimized runs.
+
+After the event, delete your local `.env`; the organizer will delete the dedicated
+Azure resource to revoke shared access. No credential belongs in Git or a browser bundle.
 
 ## Try documents
 
@@ -50,7 +126,8 @@ Jobs live in memory; the last eight are retained. Restarting the server clears t
 Use one Uvicorn worker because the registry is process-local. Stop with Ctrl+C.
 The job deadline is 90 seconds, OCR calls are limited to ten seconds, and benchmark
 children have a hard 120-second process timeout. Cancellation is checked between
-stages and during table parsing. This is a local synthetic-document service, not a
+stages, during table parsing and during retry backoff. An in-flight inference request
+may finish before cancellation takes effect, bounded by its request timeout. This is a local synthetic-document service, not a
 hardened public upload endpoint.
 
 ## Measure
@@ -67,8 +144,8 @@ assistant. Collect real telemetry for both baseline and optimized runs.
 ```
 
 The label records your configuration name; it does not install monitoring or certify
-that telemetry exists. Each run uses three fresh processes. Allow roughly 1â€“2 minutes
-for a full baseline set on the tested host. Keep the machine idle and preserve the
+that telemetry exists. Each run uses three fresh processes. Reserve up to 8 minutes for all six official trials, uploads and comparison.
+Latency and shared quota contention vary; run the baseline early. Keep the machine idle and preserve the
 JSON reports. CLI benchmarks use the same API/background pipeline via TestClient,
 which waits for background work to finish. Interactive HTTP returns acceptance sooner.
 
@@ -76,3 +153,8 @@ If a job hits a budget, keep that failure as evidence and investigate. Do not ra
 safety bounds, modify controls, or omit difficult documents to obtain a score. For a
 quick development smoke only, `benchmark.py run --rows 10 ...` is available; reduced
 workloads are not final submissions.
+
+Public tests use offline provider responses and never call Azure. They do not prove
+live compatibility. A successful live workload and authenticated telemetry supply that
+evidence. Optional OCR fixtures are a separate local exercise, not a replacement for
+the official hybrid workload.

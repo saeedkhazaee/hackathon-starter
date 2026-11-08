@@ -6,6 +6,7 @@ import threading
 import uuid
 from .models import content_hash
 from .pipeline import process
+from .inference import InferenceSession, ProviderError
 from .safety import Budget, MAX_ATTEMPTS, ProcessingError, Stopped
 
 
@@ -36,7 +37,9 @@ class JobStore:
             job_id = uuid.uuid4().hex
             self.cancellations[job_id] = threading.Event()
             self.jobs[job_id] = {"job_id": job_id, "status": "pending", "started_at": None,
-                                 "completed_at": None, "operations": 0, "documents": []}
+                                 "completed_at": None, "operations": 0, "documents": [],
+                                 "ai_usage": {"requests": 0, "responses_with_usage": 0, "errors": 0,
+                                    "input_tokens": 0, "output_tokens": 0, "total_tokens": 0, "cached_tokens": 0}}
             for document in batch.documents:
                 self.jobs[job_id]["documents"].append({"document_id": document.document_id,
                     "status": "pending", "stage": "pending", "attempt": 0,
@@ -66,6 +69,7 @@ class JobStore:
 
     def run(self, job_id, batch, seconds=90):
         budget = Budget(self.cancellations[job_id], seconds=seconds)
+        inference = InferenceSession(job_id)
         with self.lock:
             job = self.jobs[job_id]
             job.update(status="processing", started_at=now())
@@ -87,14 +91,24 @@ class JobStore:
                     record.update(status="processing", content_hash=digest, error=None)
                     record["started_at"] = record["started_at"] or attempt["started_at"]
 
-                def checkpoint(stage):
-                    budget.check()
+                def checkpoint(stage, **details):
+                    # Preserve received usage even if cancellation arrived in flight.
+                    if stage not in {"ai_response", "ai_error"}:
+                        budget.check()
                     with self.lock:
                         record["stage"] = stage
-                        attempt["checkpoints"].append({"stage": stage, "at": now()})
+                        attempt["checkpoints"].append({"stage": stage, "at": now(), **details})
+                        if stage == "ai_request":
+                            job["ai_usage"]["requests"] += 1
+                        elif stage == "ai_error":
+                            job["ai_usage"]["errors"] += 1
+                        elif stage == "ai_response":
+                            job["ai_usage"]["responses_with_usage"] += 1
+                            for metric in ("input_tokens", "output_tokens", "total_tokens", "cached_tokens"):
+                                job["ai_usage"][metric] += details.get(metric) or 0
 
                 try:
-                    output = process(version, budget, checkpoint)
+                    output = process(version, budget, checkpoint, inference)
                 except Stopped:
                     raise
                 except ProcessingError as exc:
@@ -102,7 +116,7 @@ class JobStore:
                         error = {"code": exc.code, "message": str(exc)}
                         attempt.update(status="failed", error=error, completed_at=now())
                         record["error"] = error
-                        if record["attempt"] < MAX_ATTEMPTS:
+                        if record["attempt"] < MAX_ATTEMPTS and (not isinstance(exc, ProviderError) or exc.retryable):
                             record["status"] = "retrying"
                             queue.append((index, document))
                         else:
@@ -131,6 +145,7 @@ class JobStore:
                                  else "completed")
                 job.update(completed_at=now(), operations=budget.operations)
                 self.lane.release()
+            inference.close()
 
 
 def process_batch(batch):

@@ -16,13 +16,14 @@ your explanation. Automatic stuck-job alerts are not a promised feature of this 
 |---|---:|
 | Clone and run | 5 |
 | Discover and integrate NetGreener | 10 |
-| Observe and investigate | 15 |
-| Optimize | 20 |
-| Verify and submit | 10 |
+| Observe, collect baseline and investigate | 15 |
+| Optimize | 18 |
+| Verify and submit | 12 |
 | Total | 60 |
 
 Use these times as a guide. Prepare software downloads, account access and projects
-before the event. Perform the NetGreener integration during the competition.
+and the private Azure `.env` before the event. Start baseline collection early;
+reserve up to eight minutes in total for six controlled trials and upload checks. Perform the NetGreener integration during the competition.
 
 Individuals and teams receive exactly the same task and rubric. Optional team roles
 can separate telemetry, pipeline work, job orchestration and verification. Work on

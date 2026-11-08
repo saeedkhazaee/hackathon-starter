@@ -58,12 +58,19 @@ def read_document(text, budget):
     return fields, sources
 
 
-def extract(text, category, budget):
+def extract(text, category, budget, interpreted=None):
     if category not in FIELDS:
         raise PermanentError("unknown_document", "Document type is outside the trained scope")
     result, citations = {}, {}
+    semantic_fields, semantic_citations = interpreted or ({}, {})
     for field in FIELDS[category]:
         view, locations = read_document(text, budget)
+        if field in semantic_fields:
+            if field in view:
+                raise PermanentError("duplicate_field", "A field cannot be supplied by both a header and the Narrative section")
+            result[field] = semantic_fields[field]
+            citations[field] = semantic_citations[field]
+            continue
         if field not in view or view[field] == "":
             raise PermanentError("missing_field", f"Missing required field: {field}")
         result[field] = view[field]

@@ -7,6 +7,8 @@ data are bundled.
 
 Runtime dependencies: FastAPI (MIT), Starlette (BSD-3-Clause), Pydantic and pydantic-core
 (MIT), Uvicorn (BSD-3-Clause), pypdf (BSD-3-Clause), plus their transitive dependencies.
+The OpenAI Python SDK (Apache-2.0) supplies the Azure client; python-dotenv uses
+BSD-3-Clause. The frontend uses React/React DOM and Vite (MIT).
 Development tools include pytest (MIT), HTTPX (BSD-3-Clause), and Pillow (MIT-CMU).
 The lock records exact packages and published wheel hashes; installed distributions
 contain their authoritative license texts. Pillow generates the optional synthetic PNG.

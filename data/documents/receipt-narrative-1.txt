@@ -1,0 +1,13 @@
+Sales Receipt
+Subtotal Cents: 4876
+Tax Cents: 244
+Total Cents: 5120
+Narrative:
+The card processor is Pine Payments; the store that sold these items is Cedar Store.
+This receipt records the purchase made on October 15, 2026, not the October 18 posting date.
+End Narrative
+Items:
+description,quantity,unit_cents
+Service 1,5,524
+Service 2,3,474
+Service 3,3,278

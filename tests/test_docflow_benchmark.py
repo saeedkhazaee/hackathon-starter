@@ -7,8 +7,11 @@ from benchmark import compare, validate_report
 
 def report():
     sample = {"wall_seconds": 2.0, "parent_process_cpu_seconds": 1.0,
-              "workload_sha256": "workload", "result_sha256": "result", "completed": 37, "failed": 3}
-    return {"schema": 2, "conditions": {"runs": 3, "workload_sha256": "workload", "measurement_label": "same"},
+              "workload_sha256": "workload", "result_sha256": "result", "completed": 37, "failed": 3,
+              "inference_contract": {"deployment": "gpt-5-mini"},
+              "ai_usage": {"requests": 8, "responses_with_usage": 8, "errors": 0,
+                           "input_tokens": 100, "output_tokens": 100, "total_tokens": 200, "cached_tokens": 0}}
+    return {"schema": 2, "conditions": {"runs": 3, "workload_sha256": "workload", "measurement_label": "same", "inference_contract": sample["inference_contract"]},
             "samples": [deepcopy(sample) for _ in range(3)], "median_wall_seconds": 2.0, "median_parent_process_cpu_seconds": 1.0}
 
 

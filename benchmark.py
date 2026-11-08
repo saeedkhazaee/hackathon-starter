@@ -24,7 +24,14 @@ def worker(args):
     from docflow.api import app
     from docflow.jobs import meaningful_results
     from docflow.workload import make_workload
-    batch = make_workload(seed=args.seed, rows=args.rows)
+    from docflow.config import load_azure_settings
+    from docflow.inference import INSTRUCTIONS, PROMPT_VERSION, SCHEMA_VERSION, Interpretation
+    settings = load_azure_settings()
+    inference_contract = {"base_url": settings.base_url, "deployment": settings.deployment,
+        "reasoning_effort": settings.reasoning_effort, "max_output_tokens": settings.max_output_tokens,
+        "prompt_version": PROMPT_VERSION, "schema_version": SCHEMA_VERSION,
+        "prompt_sha256": digest(INSTRUCTIONS), "schema_sha256": digest(Interpretation.model_json_schema())}
+    batch = make_workload(seed=args.seed, rows=args.rows, language_assisted=True)
     payload = batch.model_dump()
     with TestClient(app) as client:
         start, cpu = time.perf_counter(), time.process_time()
@@ -43,7 +50,7 @@ def worker(args):
             raise ValueError("Unexpected document failure")
     return {"wall_seconds": wall, "parent_process_cpu_seconds": cpu,
             "result_sha256": digest(results), "workload_sha256": digest(payload),
-            "completed": 37, "failed": 3,
+            "completed": 37, "failed": 3, "ai_usage": job["ai_usage"], "inference_contract": inference_contract,
             "attempts": sum(d["attempt"] for d in job["documents"]), "stage_operations": job["operations"]}
 
 
@@ -70,7 +77,8 @@ def run(args):
     report = {"schema": 2, "conditions": {"seed": args.seed, "rows": args.rows, "runs": args.runs,
         "python": platform.python_version(), "platform": platform.platform(), "host": platform.node(),
         "packages": packages, "concurrency": 1, "cache": "fresh process per trial; empty job store",
-        "measurement_label": args.label, "controls_sha256": control_hash(), "workload_sha256": samples[0]["workload_sha256"]},
+        "measurement_label": args.label, "controls_sha256": control_hash(), "workload_sha256": samples[0]["workload_sha256"],
+        "inference_contract": samples[0]["inference_contract"]},
         "samples": samples, "median_wall_seconds": statistics.median(s["wall_seconds"] for s in samples),
         "median_parent_process_cpu_seconds": statistics.median(s["parent_process_cpu_seconds"] for s in samples),
         "provenance": "Independent time.perf_counter and time.process_time in the API process; excludes child-process CPU",
@@ -93,6 +101,15 @@ def validate_report(report):
             raise ValueError("Workload digest mismatch")
         if (sample["completed"], sample["failed"]) != (37, 3):
             raise ValueError("Invalid document outcomes")
+        usage = sample["ai_usage"]
+        for key in ("requests", "responses_with_usage", "errors", "input_tokens", "output_tokens", "total_tokens", "cached_tokens"):
+            if type(usage[key]) is not int or usage[key] < 0:
+                raise ValueError("Invalid provider usage")
+        if (usage["requests"] < 1 or usage["responses_with_usage"] != usage["requests"] or usage["errors"]
+                or usage["total_tokens"] != usage["input_tokens"] + usage["output_tokens"]):
+            raise ValueError("Provider usage coverage is incomplete; rerun the affected trial")
+        if sample["inference_contract"] != report["conditions"]["inference_contract"]:
+            raise ValueError("Inference conditions changed")
     for field, metric in (("median_wall_seconds", "wall_seconds"), ("median_parent_process_cpu_seconds", "parent_process_cpu_seconds")):
         if report[field] != statistics.median(s[metric] for s in samples):
             raise ValueError("Reported median does not match samples")

@@ -29,8 +29,10 @@ wasteful: a large legitimate input may require substantial work.
 
 The starter includes a local Python application, CLI and HTTP API, synthetic sample
 documents, public correctness tests, and a reproducible benchmark. A trained local
-machine-learning model classifies documents; deterministic rules extract and validate
-their fields. It requires no paid AI service or remote language-model calls.
+machine-learning model classifies documents. Deterministic rules handle structured
+fields and validation; Azure OpenAI interprets organization names and dates in prose
+for eight documents. Temporary Azure configuration is supplied privately. The React
+workspace shows document progress and provider-reported request/token usage.
 
 The full benchmark processes **40 documents**. Its expected outcome is **37 successful
 documents and three legitimate arithmetic failures**. An aggregate job marked failed
@@ -47,7 +49,7 @@ prerequisites. Supported formats and behavior are defined in the
    Discover its documentation and developer tools, then integrate monitoring into
    this application. The starter does not include a completed integration.
 2. **Observe.** Run the full workload with monitoring enabled. Inspect the resulting
-   NetGreener dashboard evidence alongside the application's job status, attempts,
+   NetGreener dashboard evidence for runtime and external requests alongside the application's job status, attempts,
    stages, errors and results. The API exposes these through its
    [local interactive documentation](http://127.0.0.1:8000/docs).
 3. **Investigate.** Use a specific NetGreener observation to form a hypothesis, then
@@ -77,10 +79,10 @@ rejected, your reason, and the evidence used to check it. Link to a run, applica
 trace, test result or code diff. Full chat histories are not required. Report decisions
 honestly; you do not need to invent a disagreement with your agent.
 
-Be ready to explain the evidence and one way your improvement could fail. The current
-application has local machine learning and rule-based extraction; it does not contain
-an LLM agent or MCP tool workflow. Application attempts are not automatically
-NetGreener tool-call telemetry.
+Be ready to explain the evidence and one way your improvement could fail. The application
+combines local processing with real language-model requests. It has no autonomous
+agent or MCP workflow. Application attempts and Python function calls must not be
+presented as observed AI tool-call telemetry.
 
 ## What a successful solution preserves
 
@@ -103,14 +105,16 @@ concurrency and cache conditions comparable. If a measurement condition changes,
 collect a new matching baseline.
 
 The rubric is Innovation (25%), Efficiency (40%), Impact (20%) and Presentation (15%).
-Efficiency awards 30 points for verified CPU reduction and 10 for evidence that
-unnecessary work was eliminated while required outcomes were preserved.
+Efficiency considers verified CPU improvement, external inference efficiency and
+eliminated unnecessary work. The numerical allocation is announced before the event.
 
 CPU scoring uses NetGreener-attributed CPU for `POST /jobs`, with matching measurement
 scope and provenance. You must prove that the measured scope includes the actual
 processing worker. Moving work to an unmeasured process is not an optimization. Local
-CPU and wall time provide supporting evidence. This exercise does not establish
-physical energy, carbon, water or AI-token savings. Correctness, trustworthy
+CPU and wall time provide supporting evidence. Compare actual outbound request and
+token measurements with Azure response usage. Any cost estimate must identify its
+rates and coverage; a dashboard zero does not prove free inference. This exercise
+does not establish physical energy, carbon or water savings. Correctness, trustworthy
 measurements and worker coverage must pass before Efficiency points or winner
 eligibility are awarded. See [RULES.md](RULES.md) for the exact gates.
 

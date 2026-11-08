@@ -1,0 +1,15 @@
+Purchase Order
+Order Number: PO-5
+Customer: Maple Works
+Subtotal Cents: 4876
+Tax Cents: 244
+Total Cents: 5120
+Narrative:
+The document was issued on October 15, 2026; payment is due on November 14, 2026.
+Maple Works is the purchaser. The listed services are supplied by Cedar Systems.
+End Narrative
+Items:
+description,quantity,unit_cents
+Service 1,5,524
+Service 2,3,474
+Service 3,3,278
