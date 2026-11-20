@@ -152,3 +152,35 @@ def test_timeout_is_safe_and_has_no_hidden_sdk_retry(monkeypatch):
     assert error.value.retryable and len(calls) == 1
     assert 'offline-secret' not in str(error.value)
     session.close()
+
+
+@pytest.mark.parametrize('always_invalid', [False, True])
+def test_invalid_provider_output_retries_within_existing_request_limit(monkeypatch, always_invalid):
+    text = narrative_text()
+    requests = []
+    def handler(request):
+        requests.append(request)
+        body = response_body(text)
+        if always_invalid or len(requests) == 1:
+            value = json.loads(output(text))
+            value['fields'][0]['source_line'] = 999
+            body['output'][0]['content'][0]['text'] = json.dumps(value)
+        return httpx.Response(200, json=body)
+    def configure(self):
+        self.settings = settings()
+        if self.client is None:
+            self.client = OpenAI(api_key='offline-secret', base_url=self.settings.base_url,
+                max_retries=0, http_client=httpx.Client(transport=httpx.MockTransport(handler)))
+        return self.settings
+    monkeypatch.setattr(InferenceSession, 'configure', configure)
+    job = process_batch(Batch(documents=[text_document('prose', text)]))
+    document = job['documents'][0]
+    assert len(requests) == 3
+    assert job['ai_usage']['requests'] == job['ai_usage']['responses_with_usage'] == 3
+    assert job['ai_usage']['total_tokens'] == 540
+    if always_invalid:
+        assert document['status'] == 'failed' and document['result'] is None
+        assert document['error']['code'] == 'ai_attempt_limit'
+    else:
+        assert document['status'] == 'completed'
+        assert document['result']['fields']['supplier'] == 'Cedar Systems'
