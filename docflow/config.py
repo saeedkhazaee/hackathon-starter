@@ -45,6 +45,9 @@ def load_azure_settings(path: Path | None = None) -> AzureSettings:
     key = setting("AZURE_OPENAI_API_KEY")
     if not deployment or not key:
         raise ConfigurationError("Set AZURE_OPENAI_DEPLOYMENT and AZURE_OPENAI_API_KEY in .env.")
+    reasoning_effort = setting("AZURE_OPENAI_REASONING_EFFORT") or "minimal"
+    if reasoning_effort not in {"none", "minimal", "low", "medium", "high", "xhigh"}:
+        raise ConfigurationError("Set a supported AZURE_OPENAI_REASONING_EFFORT in .env.")
     endpoint = setting("AZURE_OPENAI_ENDPOINT").rstrip("/")
     explicit_base = setting("AZURE_OPENAI_BASE_URL").rstrip("/")
     candidate = explicit_base or endpoint
@@ -61,4 +64,4 @@ def load_azure_settings(path: Path | None = None) -> AzureSettings:
     base = candidate if parsed.path.rstrip("/") else candidate + "/openai/v1"
     if endpoint and explicit_base and endpoint not in (base, base.removesuffix("/openai/v1")):
         raise ConfigurationError("Azure endpoint and base URL disagree.")
-    return AzureSettings(base + "/", deployment, SecretStr(key))
+    return AzureSettings(base + "/", deployment, SecretStr(key), reasoning_effort=reasoning_effort)

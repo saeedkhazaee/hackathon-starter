@@ -4,15 +4,19 @@ from fastapi import FastAPI, BackgroundTasks, HTTPException
 from .jobs import JobStore, Busy
 from .models import Batch, Document
 from typing import Literal
+from .competition import Competition
 
 store = JobStore()
+competition = Competition()
 
 
 @asynccontextmanager
 async def lifespan(app):
-    global store
+    global store, competition
     store = JobStore()
+    competition = Competition()
     yield
+    competition.close()
     store.close()
 
 
@@ -114,3 +118,26 @@ def results(job_id: str):
 def cancel(job_id: str):
     lookup(job_id)
     return store.cancel(job_id)
+
+
+@app.get("/competition")
+def competition_status():
+    return competition.snapshot()
+
+
+@app.post("/competition/compare")
+def competition_compare():
+    try:
+        return competition.compare()
+    except ValueError as exc:
+        raise HTTPException(409, str(exc)) from exc
+
+
+@app.post("/competition/{phase}", status_code=202)
+def competition_run(phase: Literal["baseline", "optimized"]):
+    from .config import load_azure_settings
+    try:
+        load_azure_settings()
+        return competition.start(phase, store)
+    except (Busy, ValueError) as exc:
+        raise HTTPException(409, str(exc)) from exc

@@ -51,7 +51,7 @@ prerequisites. Supported formats and behavior are defined in the
 2. **Observe.** Run the full workload with monitoring enabled. Inspect the resulting
    NetGreener dashboard evidence for runtime and external requests alongside the application's job status, attempts,
    stages, errors and results. The API exposes these through its
-   [local interactive documentation](http://127.0.0.1:8000/docs).
+   [local interactive documentation](http://127.0.0.1:8002/docs).
 3. **Investigate.** Use a specific NetGreener observation to form a hypothesis, then
    connect it to actual application behavior. Direct your coding agent to examine the
    relevant path. Explain which work is necessary and which work fails to contribute

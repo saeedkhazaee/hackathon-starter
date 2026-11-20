@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import Competition from './Competition';
 
 const terminal = (status) => ['completed', 'failed', 'cancelled'].includes(status);
 const pretty = (value) => String(value ?? '—').replaceAll('_', ' ');
@@ -97,6 +98,8 @@ function Result({ document }) {
 
 export default function App() {
   const [health, setHealth] = useState(null);
+  const [benchmarkRunning, setBenchmarkRunning] = useState(false);
+  const [exploring, setExploring] = useState(false);
   const [jobId, setJobId] = useState(() => { try { return localStorage.getItem('docflow.job'); } catch { return null; } });
   const [job, setJob] = useState(null);
   const [selected, setSelected] = useState(null);
@@ -113,19 +116,20 @@ export default function App() {
   const fileInput = useRef(null);
   const submitLock = useRef(false);
   const active = Boolean(jobId && (!job || !terminal(job.status)));
-  const busy = submitting || active;
+  const busy = submitting || active || benchmarkRunning;
 
   useEffect(() => {
     const controller = new AbortController();
     let timer;
     async function check() {
+      if (benchmarkRunning) return;
       try { setHealth(await api('/health', { signal: controller.signal })); }
       catch { if (!controller.signal.aborted) setHealth({ status: 'offline' }); }
       if (!controller.signal.aborted) timer = setTimeout(check, 6000);
     }
     check();
     return () => { controller.abort(); clearTimeout(timer); };
-  }, []);
+  }, [benchmarkRunning]);
 
   useEffect(() => {
     if (!jobId) return;
@@ -167,7 +171,7 @@ export default function App() {
       setFilenames(Object.fromEntries(batch.documents.map((document) => [document.document_id, document.filename])));
       setJob(null); setSelected(null); setFilter('all'); setQuery(''); setResultsReady(false);
       setLabel(title); setJobId(response.job_id); remember(response.job_id);
-    } catch (err) { setError(err.message === 'Failed to fetch' ? 'Cannot reach the backend. Check that it is running on port 8000.' : err.message); }
+    } catch (err) { setError(err.message === 'Failed to fetch' ? 'Cannot reach the backend. Check that it is running on port 8002.' : err.message); }
     finally { submitLock.current = false; setSubmitting(false); }
   }
 
@@ -196,29 +200,32 @@ export default function App() {
 
   return <div className="app-shell">
     <aside className="sidebar">
-      <a className="brand" href="/" aria-label="DocFlow home"><span className="brand-mark"><Icon /></span><span>docflow<span className="brand-sub">RESCUE WORKSPACE</span></span></a>
+      <a className="brand" href="/" aria-label="DocFlow home"><span className="brand-mark"><Icon /></span><span>docflow<span className="brand-sub">EFFICIENCY CHALLENGE</span></span></a>
       <span className="sidebar-label">WORKSPACE</span>
-      <a className="nav-item selected" href="#workspace"><Icon />Document inbox<span className="nav-dot" /></a>
-      <a className="nav-item" href="http://127.0.0.1:8000/docs" target="_blank" rel="noreferrer"><Icon name="arrow" />API explorer</a>
-      <div className="sidebar-note"><span className="small-orbit">↗</span><h3>Less waste.<br />Better processing.</h3><p>Follow each document from ingestion to a verified result.</p><span className="sidebar-tag">DOCFLOW RESCUE</span></div>
+      <a className="nav-item selected" href="#workspace"><Icon />Competition<span className="nav-dot" /></a>
+      <a className="nav-item" href="http://127.0.0.1:8002/docs" target="_blank" rel="noreferrer"><Icon name="arrow" />API explorer</a>
+      <div className="sidebar-note"><span className="small-orbit">↗</span><h3>Less waste.<br />Better processing.</h3><p>Measure the baseline. Reduce waste. Prove the same work still gets done.</p><span className="sidebar-tag">DOCFLOW RESCUE</span></div>
       <div className="sidebar-footer"><span className={`connection-dot ${health?.status === 'ok' ? 'online' : ''}`} /><div>{health?.status === 'ok' ? 'Backend connected' : health ? 'Backend offline' : 'Connecting…'}<small>Local workspace</small></div></div>
     </aside>
 
     <main id="workspace">
-      <header className="topbar"><span>Workspace <span className="breadcrumb">/</span> <strong>Document inbox</strong></span><span className="mode-pill"><span />{health?.azure_configured ? 'Azure AI ready' : 'Azure setup needed'}</span></header>
+      <header className="topbar"><span>Workspace <span className="breadcrumb">/</span> <strong>Competition</strong></span><span className="mode-pill"><span />{health?.azure_configured ? 'Azure AI ready' : 'Azure setup needed'}</span></header>
       <div className="page-content">
-        <div className="page-heading"><div><span className="eyebrow">DOCUMENT OPERATIONS</span><h1>Make sense of every document<span>.</span></h1><p>Process your inbox. Follow the work. Inspect the outcome.</p></div><span className="workspace-number">01 / INBOX</span></div>
+        <div className="page-heading"><div><span className="eyebrow">NETGREENER AI EFFICIENCY CHALLENGE</span><h1>Rescue the runaway pipeline<span>.</span></h1><p>Integrate monitoring. Measure. Optimize. Compare.</p></div><span className="workspace-number">60 MIN / CHALLENGE</span></div>
         {error && <div className="alert" role="alert"><span>{error}</span><button aria-label="Dismiss error" onClick={() => setError('')}>×</button></div>}
-        {health?.status === 'offline' && <div className="alert" role="status">The backend is unavailable. Start DocFlow on port 8000; this page will reconnect automatically.</div>}
+        {health?.status === 'offline' && <div className="alert" role="status">The backend is unavailable. Start DocFlow on port 8002; this page will reconnect automatically.</div>}
+        <Competition onRunning={setBenchmarkRunning} interactiveBusy={submitting || active} configured={health?.azure_configured && health?.status === 'ok'} />
+        <section className="explore-toggle"><div><h2>Explore the pipeline <span>Optional</span></h2><p>Use a small demo to inspect document stages, attempts, and results. This is separate from the competition benchmark.</p></div><button className="button outline" disabled={benchmarkRunning} onClick={() => setExploring(!exploring)} aria-expanded={exploring}>{exploring ? 'Hide exploration' : 'Explore documents'}</button></section>
+        {exploring && <>
         <section className="intake-grid" aria-label="Start a processing job">
           <div className={`upload-card ${dragging ? 'dragging' : ''} ${busy ? 'disabled' : ''}`} onDragOver={(event) => { event.preventDefault(); if (!busy) setDragging(true); }} onDragLeave={() => setDragging(false)} onDrop={(event) => { event.preventDefault(); setDragging(false); if (!busy) start(() => uploadBatch([...event.dataTransfer.files]), 'Uploaded documents'); }}>
             <div className="upload-symbol"><Icon name="upload" size={27} /></div>
-            <div><h2>Bring your documents</h2><p>Drop files here, or choose them from your computer.</p><span className="file-types">TXT · PDF · PNG · Inbox JSON</span></div>
+            <div><h2>Test a custom document</h2><p>Optional: try your own supported-format files outside the scored workload.</p><span className="file-types">TXT · PDF · PNG · Inbox JSON</span></div>
             <input ref={fileInput} className="visually-hidden" type="file" aria-label="Upload documents" accept=".txt,.pdf,.png,.json" multiple disabled={busy} onChange={(event) => { const files = [...event.target.files]; if (files.length) start(() => uploadBatch(files), 'Uploaded documents'); event.target.value = ''; }} />
             <button className="button primary" disabled={busy} onClick={() => fileInput.current.click()}><Icon name="upload" size={17} />Choose files</button>
             <div className="upload-foot"><span>Up to 50 files · 4 MB per document</span><button className="text-button" onClick={example}>Get an example <span>↗</span></button></div>
           </div>
-          <div className="sample-card"><div className="sample-top"><span className="eyebrow">START WITH A SAMPLE</span><span className="sample-count">40<span>DOCS</span></span></div><h2>A ready-to-run inbox.</h2><p>Invoices, purchase orders, receipts, and contracts—with recovery cases and validation failures to inspect.</p><div className="sample-actions"><button className="button dark" disabled={busy} onClick={() => start(() => api('/samples/demo'), 'Quick demo · 40 documents')}><Icon name="play" size={16} />Run quick demo</button><button className="button outline" disabled={busy} onClick={() => start(() => api('/samples/full'), 'Full workload · 40 documents')}>Full workload <Icon name="arrow" size={16} /></button></div><small>Both samples include 8 AI-assisted documents and make paid Azure requests. Expect 37 successes and 3 validation failures. The full workload has larger documents.</small></div>
+          <div className="sample-card"><div className="sample-top"><span className="eyebrow">EXPLORE PROCESSING</span><span className="sample-count">40<span>DOCS</span></span></div><h2>Inspect the supplied documents.</h2><p>Invoices, purchase orders, receipts, and contracts—with recovery cases and validation failures to inspect.</p><div className="sample-actions"><button className="button dark" disabled={busy} onClick={() => start(() => api('/samples/demo'), 'Quick demo · 40 documents')}><Icon name="play" size={16} />Run exploration demo</button><button className="button outline" disabled={busy} onClick={() => start(() => api('/samples/full'), 'Full workload · 40 documents')}>Explore full inputs <Icon name="arrow" size={16} /></button></div><small>Both samples include 8 AI-assisted documents and make paid Azure requests. Expect 37 successes and 3 validation failures. The full workload has larger documents.</small></div>
         </section>
 
         <div className="support-note"><Icon size={15} /><span>Use the supported document format. Digital PDFs need extractable text; PNG scans need Tesseract.{health?.ocr_available === false ? ' OCR is not available on this server.' : ''} {health?.azure_configured === false ? 'Ask the organizer for the server .env before processing prose documents.' : 'Prose sections are sent to the configured Azure deployment.'}</span></div>
@@ -229,10 +236,11 @@ export default function App() {
           {job && <div className="metrics" aria-label="Azure request usage"><div><span>AZURE REQUESTS</span><strong>{job.ai_usage?.requests ?? 0}</strong><small>Actual inference attempts</small></div><div><span>INPUT TOKENS</span><strong>{(job.ai_usage?.input_tokens ?? 0).toLocaleString()}</strong><small>Reported by Azure</small></div><div><span>OUTPUT TOKENS</span><strong>{(job.ai_usage?.output_tokens ?? 0).toLocaleString()}</strong><small>Includes reasoning tokens</small></div><div><span>USAGE COVERAGE</span><strong>{job.ai_usage?.responses_with_usage ?? 0}/{job.ai_usage?.requests ?? 0}</strong><small>{job.ai_usage?.errors ?? 0} request errors · no billing estimate</small></div></div>}
           {job && <div className="progress-track" role="progressbar" aria-label="Finished documents" aria-valuenow={settled} aria-valuemin={0} aria-valuemax={documents.length}><div style={{ width: `${documents.length ? settled / documents.length * 100 : 0}%` }} /></div>}
           {pollError && <div className="connection-message" role="status">{pollError}</div>}
-          {!job && <div className="empty-state"><span className="empty-icon"><Icon size={30} /></span><h3>{submitting || jobId ? 'Your inbox is on its way' : 'A clear view of your workflow'}</h3><p>{submitting || jobId ? 'Fetching the latest processing state…' : 'Upload a document or try the sample inbox. Every attempt and result will appear here.'}</p>{!jobId && !submitting && <button className="text-button" onClick={() => start(() => api('/samples/demo'), 'Quick demo · 40 documents')}>Try the quick demo <Icon name="arrow" size={16} /></button>}</div>}
+          {!job && <div className="empty-state"><span className="empty-icon"><Icon size={30} /></span><h3>{submitting || jobId ? 'Your inbox is on its way' : 'A clear view of your workflow'}</h3><p>{submitting || jobId ? 'Fetching the latest processing state…' : 'Run the exploration demo to inspect every attempt and result. No upload is required.'}</p>{!jobId && !submitting && <button className="text-button" onClick={() => start(() => api('/samples/demo'), 'Quick demo · 40 documents')}>Run exploration demo <Icon name="arrow" size={16} /></button>}</div>}
           {job && <div className="results-layout"><div className="inbox-panel"><div className="table-toolbar"><input type="search" aria-label="Search documents" placeholder="Find a document…" value={query} onChange={(event) => setQuery(event.target.value)} /><select aria-label="Filter document status" value={filter} onChange={(event) => setFilter(event.target.value)}><option value="all">All statuses</option>{['completed', 'failed', 'processing', 'retrying', 'pending', 'cancelled'].map((state) => <option key={state} value={state}>{pretty(state)}</option>)}</select></div><div className="document-list" aria-label="Documents">{visible.length === 0 && <p className="no-matches">No documents match this filter.</p>}{visible.map((document) => <button className={`document-row ${selected === document.document_id ? 'current' : ''}`} key={document.document_id} onClick={() => setSelected(document.document_id)} aria-pressed={selected === document.document_id}><span className="document-icon"><Icon size={19} /></span><span className="document-name"><strong>{filenames[document.document_id] ?? document.document_id}</strong><small>{pretty(document.stage)} · {document.attempt} {document.attempt === 1 ? 'attempt' : 'attempts'}</small></span><span className={`badge ${document.status}`}>{pretty(document.status)}</span></button>)}</div></div><aside className="inspector" aria-label="Selected document"><Result document={chosen} /></aside></div>}
         </section>
-        <footer className="page-footer"><span>DocFlow Rescue <span className="footer-divider">/</span> Document workspace</span><span>One inbox. Every step accounted for.</span></footer>
+        </>}
+        <footer className="page-footer"><span>DocFlow Rescue <span className="footer-divider">/</span> Efficiency challenge</span><span>Same required work. Measured improvement.</span></footer>
       </div>
     </main>
   </div>;

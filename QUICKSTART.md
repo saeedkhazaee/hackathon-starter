@@ -31,7 +31,7 @@ npm 10.9.0). Keep two terminals open at the repository root.
 Terminal 1 starts the backend:
 
 ```powershell
-.\.venv\Scripts\python.exe -m uvicorn docflow.api:app --host 127.0.0.1 --port 8000 --workers 1 --timeout-graceful-shutdown 15
+.\.venv\Scripts\python.exe -m uvicorn docflow.api:app --host 127.0.0.1 --port 8002 --workers 1 --timeout-graceful-shutdown 15
 ```
 
 Terminal 2 starts React:
@@ -42,21 +42,36 @@ npm ci
 npm run dev
 ```
 
-Open **http://127.0.0.1:5173**. Choose files or drag in TXT, digital PDF, or PNG
-documents. A single inbox JSON export is also supported. Use **Get an example**
-for a supported prose-assisted invoice (processing it makes Azure calls). The backend still enforces the document format and limits.
+Open **http://127.0.0.1:5173**. The competition screen uses the supplied workload;
+participants do not need to upload documents.
 
-**Run quick demo** uses 40 small documents. **Full workload** uses the original
-40-document benchmark inputs, including larger tables. Both expect 37 successes
-and 3 validation failures. Select a document to inspect its attempts, extracted
-fields, source lines and errors. Azure counters show actual request attempts and
-provider-reported tokens as responses arrive. They are application evidence, not a
-monitoring-product integration or an Azure invoice. Cancel an active job or download its final results.
-Refreshing the page restores the last job while it remains in server memory.
+1. Integrate NetGreener and confirm telemetry covers the actual processing workers
+   in the benchmark's fresh processes, not only the web server.
+2. Click **Run baseline** before optimizing. It runs the full 40-document workload
+   in three fresh processes and saves the report.
+3. Investigate with NetGreener, optimize the permitted application code, and run
+   `.\.venv\Scripts\python.exe -m pytest -q`. Restart the backend after code changes.
+4. Click **Run optimized benchmark**, then **Compare results**. Download both reports
+   and the comparison, and attach real NetGreener evidence separately.
 
-Interactive runs help explore behavior; use the benchmark commands below for scored,
-comparable trials. Browser polling, sample generation and other traffic can change
-measurement conditions. Stop browser activity during controlled benchmark trials.
+Each trial expects 37 successes and 3 legitimate arithmetic failures. Benchmarks make
+paid Azure requests and can take several minutes. Keep the machine idle. The UI
+shows completed trials; saved reports survive backend restarts under
+`.runtime/competition/`. A new baseline clears the current optimized comparison;
+older report files remain on disk. An interrupted run must be repeated.
+
+The UI invokes the unchanged `benchmark.py` runner. Its workers call the API through
+TestClient; they do not send processing requests to the running Uvicorn server.
+Monitoring installed only around the Uvicorn launch will not automatically cover
+these workers. Verify actual worker coverage before collecting scored evidence.
+The CLI below remains available for reproduction and detailed diagnosis.
+
+**Explore the pipeline** is optional and separate from scoring. Expand it to run
+small demo documents, inspect processing attempts and source references, or test
+custom supported-format TXT, digital PDF, PNG, or inbox JSON files. PNG OCR requires
+Tesseract. Exploration demos also make paid Azure requests. Document jobs are blocked
+while a benchmark is running. Close other browser tabs and avoid unrelated traffic
+during controlled trials. Local timing reports alone do not establish scoring eligibility.
 
 Vite forwards `/api` requests to the local backend; no CORS configuration or browser
 API key is needed. Keep Azure credentials only in the root `.env`, never in frontend
@@ -115,10 +130,10 @@ the text/PDF workload; organizer-declared OCR judging uses the same OCR setup fo
 ## API and job progress
 
 ```powershell
-.\.venv\Scripts\python.exe -m uvicorn docflow.api:app --host 127.0.0.1 --port 8000 --workers 1 --timeout-graceful-shutdown 15
+.\.venv\Scripts\python.exe -m uvicorn docflow.api:app --host 127.0.0.1 --port 8002 --workers 1 --timeout-graceful-shutdown 15
 ```
 
-Open http://127.0.0.1:8000/docs. `POST /documents/process` processes a single document.
+Open http://127.0.0.1:8002/docs. `POST /documents/process` processes a single document.
 `POST /jobs` accepts a batch and returns a job ID while its background task runs.
 Inspect `/jobs/{job_id}/status`, then `/jobs/{job_id}/results`. Request cancellation
 with `POST /jobs/{job_id}/cancel`. A second simultaneous submission returns HTTP 409.

@@ -40,10 +40,10 @@ py -3.14 scripts/bootstrap.py
 .\.venv\Scripts\python.exe -m docflow --check-azure-config
 .\.venv\Scripts\python.exe -m docflow
 .\.venv\Scripts\python.exe -m pytest -q
-.\.venv\Scripts\python.exe -m uvicorn docflow.api:app --host 127.0.0.1 --port 8000 --workers 1 --timeout-graceful-shutdown 15
+.\.venv\Scripts\python.exe -m uvicorn docflow.api:app --host 127.0.0.1 --port 8002 --workers 1 --timeout-graceful-shutdown 15
 ```
 
-Open [API documentation](http://127.0.0.1:8000/docs). The CLI and API use the same
+Open [API documentation](http://127.0.0.1:8002/docs). The CLI and API use the same
 pipeline. The small demo processes 40 documents, with 37 successful results and
 three documented arithmetic failures. Demo and benchmark runs make paid Azure requests
 using the supplied temporary resource. Offline tests make no paid calls. A failed document is a legitimate result;
@@ -57,8 +57,10 @@ npm ci
 npm run dev
 ```
 
-Open **http://127.0.0.1:5173** to upload documents, run samples, follow processing
-attempts, inspect extracted fields and source references, and download results.
+Open **http://127.0.0.1:5173** for the competition workflow: integrate NetGreener,
+click **Run baseline**, optimize, click **Run optimized benchmark**, then **Compare results**.
+The supplied workload is included; no document uploads are needed. Optional document
+exploration is available in a separate expandable section.
 Node.js 22.12 or later is required. See [QUICKSTART.md](QUICKSTART.md)
 for setup and the distinction between interactive runs and scored benchmarks.
 
