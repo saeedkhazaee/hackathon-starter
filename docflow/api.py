@@ -27,6 +27,7 @@ class BodyLimit:
     """Reject large bodies before JSON deserialization, including chunked requests."""
     def __init__(self, app):
         self.app = app
+        import netgreener
 
     async def __call__(self, scope, receive, send):
         if scope["type"] != "http" or scope["method"] != "POST":
