@@ -16,3 +16,5 @@ node_modules/
 /VALIDATION_GATE.md
 /PUBLIC_FILES.json
 /public-export-manifest.json
+
+venv/
