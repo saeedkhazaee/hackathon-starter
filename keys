@@ -1,0 +1,5 @@
+# Template only. Put real credentials in the ignored root .env file.
+AZURE_OPENAI_ENDPOINT=https://YOUR-RESOURCE.openai.azure.com/
+AZURE_OPENAI_API_KEY=YOUR_AZURE_OPENAI_API_KEY
+AZURE_OPENAI_MODEL=YOUR_DEPLOYMENT_NAME
+AZURE_OPENAI_REASONING_EFFORT=low
