@@ -1,3 +1,7 @@
+#C4Cool
+
+C is a cool programming language. If you object on this claim, I'd love to hear from you.
+
 # NetGreener AI Efficiency Challenge
 
 **Rescue the Runaway AI Pipeline** · **Build Smarter. Waste Less.**
